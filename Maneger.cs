@@ -8,32 +8,60 @@ namespace IranianAgents
 {
     public class Maneger
     {
-        public static class AllSensor
+        public static ISensor CreateSensorByName(string name)
         {
-            public static List<ISensor> SensorType = new List<ISensor>
-    {
-        new TrafficSensor(),
-        new ThermalSensor(),
-        new CellularSensor()
-    };
-        }
-
-        SimpleAgent agent = new SimpleAgent("Ali");
-        Random random = new Random();
-        public void AddSensorToAgent()
-        {
-            for (int i = 0; i < agent.SecretWeaknesses.Length; i++)
+            switch (name.ToLower())
             {
-                int index = random.Next(AllSensor.SensorType.Count); // בוחר אינדקס רנדומלי
-                var sensorType = AllSensor.SensorType[index]; // לוקח סנסור מהרשימה
-                                                              // יוצר עותק חדש מאותו סוג (חשוב!)
-                if (sensorType is TrafficSensor)
-                    agent.SecretWeaknesses[i] = new TrafficSensor();
-                else if (sensorType is ThremalSensor)
-                    agent.SecretWeaknesses[i] = new ThremalSensor();
-                else if (sensorType is CellularSensor)
-                    agent.SecretWeaknesses[i] = new CellularSensor();
+                case "thermal":
+                    return new ThermalSensor();
+                case "traffic":
+                    return new TrafficSensor();
+                case "cellular":
+                    return new CellularSensor();
+                default:
+                    return null;
             }
+        }
+        public static void run(IAgent agent)
+        {
+            Console.WriteLine($"Iranian Agent Type {agent.GetType().Name}, name: {agent.Name}");
+            Console.WriteLine($"Please enter the sensor type for weakness (Thermal, Traffic, Cellular):");
+            
+            int sensorCount = 0;
+            while (sensorCount < agent.SecretWeaknesses.Length)
+            {
+                string Sensor = Console.ReadLine();
+                ISensor InputSensor = CreateSensorByName(Sensor);
+
+
+                if (InputSensor == null)
+                {
+                    Console.WriteLine("Invalid sensor type. Please try again.");
+                    continue;
+                }
+                
+
+
+                bool found = false;
+                for (int i = 0; i < agent.SecretWeaknesses.Length; i++)
+                {
+                    if (agent.SecretWeaknesses[i].Type == Sensor)
+                    {
+                        sensorCount++;
+                        Console.WriteLine($"you found [{sensorCount}/{agent.SecretWeaknesses.Length}]");
+                        agent.Sensor.Add(InputSensor);
+                        InputSensor.Activate();
+                        found = true;
+                        break;
+
+                    }
+                }
+                if (!found)
+                {
+                    Console.WriteLine($"you found[{sensorCount}/{agent.SecretWeaknesses.Length}]"); 
+                }
+            }
+            Console.WriteLine("The Agent exposed");
         }
     }
 }

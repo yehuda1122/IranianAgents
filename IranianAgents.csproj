@@ -43,8 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddSensorToAgent.cs" />
+    <Compile Include="modell\Agent.cs" />
+    <Compile Include="Maneger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="modell\Sensor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

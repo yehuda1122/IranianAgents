@@ -10,6 +10,9 @@ namespace IranianAgents
     {
         static void Main(string[] args)
         {
+            SimpleAgent agent = new SimpleAgent("Agent007");
+            AllSensor.AddSensor(agent);
+            Maneger.run(agent);
         }
     }
 }
