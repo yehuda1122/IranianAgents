@@ -30,9 +30,16 @@ namespace IranianAgents
         {
             Name = name;
             Sensor = new List<ISensor>();
-            SecretWeaknesses = new ISensor[2]; // כל סוכן פשוט יקבל 2 חולשות
+            SecretWeaknesses = new ISensor[4]; 
         }
-        
-
+    }
+    class SquadLeader : IAgent
+    {
+        public SquadLeader(string name)
+        {
+            Name = name;
+            Sensor = new List<ISensor>();
+            SecretWeaknesses = new ISensor[4];
+        }
     }
 }

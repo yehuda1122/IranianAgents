@@ -8,6 +8,8 @@ namespace IranianAgents
 {
     public class Maneger
     {
+        private static int totalAttempts = 0;
+        private static PlusSensor plusSensorInstance = new PlusSensor();
         public static ISensor CreateSensorByName(string name)
         {
             switch (name.ToLower())
@@ -18,6 +20,8 @@ namespace IranianAgents
                     return new TrafficSensor();
                 case "cellular":
                     return new CellularSensor();
+                case "plussensor":
+                    return plusSensorInstance;
                 default:
                     return null;
             }
@@ -25,43 +29,85 @@ namespace IranianAgents
         public static void run(IAgent agent)
         {
             Console.WriteLine($"Iranian Agent Type {agent.GetType().Name}, name: {agent.Name}");
-            Console.WriteLine($"Please enter the sensor type for weakness (Thermal, Traffic, Cellular):");
-            
+            Console.WriteLine("Please enter the sensor type for weakness (Thermal, Traffic, Cellular, PlusSensor):");
             int sensorCount = 0;
+
             while (sensorCount < agent.SecretWeaknesses.Length)
             {
-                string Sensor = Console.ReadLine();
-                ISensor InputSensor = CreateSensorByName(Sensor);
+                string sensor = Console.ReadLine();
+                ISensor inputSensor = CreateSensorByName(sensor);
 
-
-                if (InputSensor == null)
+                if (inputSensor == null)
                 {
                     Console.WriteLine("Invalid sensor type. Please try again.");
                     continue;
                 }
-                
 
+                totalAttempts++; // ספירת כמות פעמים שהמשתמש הכניס סנסורים
+
+                if (agent is SquadLeader)
+                {
+                    CheckCounterAttack(agent); // מחיקת סנסור של משתמש רק בסוכן מסוים
+                }
 
                 bool found = false;
                 for (int i = 0; i < agent.SecretWeaknesses.Length; i++)
                 {
-                    if (agent.SecretWeaknesses[i].Type == Sensor)
+                    if (agent.SecretWeaknesses[i] != null && agent.SecretWeaknesses[i].GetType() == inputSensor.GetType())
                     {
+                        if (inputSensor is PlusSensor plusMatch)
+                        {
+                            plusMatch.RegisterUse();
+                            plusMatch.Activate();
+                        }
+                        else
+                        {
+                            inputSensor.Activate();
+                        }
+                        agent.Sensor.Add(inputSensor);
+                        agent.SecretWeaknesses[i] = null;
                         sensorCount++;
-                        Console.WriteLine($"you found [{sensorCount}/{agent.SecretWeaknesses.Length}]");
-                        agent.Sensor.Add(InputSensor);
-                        InputSensor.Activate();
                         found = true;
                         break;
-
                     }
                 }
-                if (!found)
+
+                if (!found && inputSensor is PlusSensor plusMissed)
                 {
-                    Console.WriteLine($"you found[{sensorCount}/{agent.SecretWeaknesses.Length}]"); 
+                    plusMissed.RegisterUse();
                 }
+                Console.WriteLine($"you found [{agent.Sensor.Count}/{agent.SecretWeaknesses.Length}]");
             }
             Console.WriteLine("The Agent exposed");
+            Console.ReadLine();
         }
+        public static void CheckCounterAttack(IAgent agent)
+        {
+            if (totalAttempts % 3 == 0)
+            {
+                if (agent.Sensor.Count > 0)
+                {
+                    Random rnd = new Random();
+                    int indexToRemove = rnd.Next(agent.Sensor.Count);
+                    agent.Sensor.RemoveAt(indexToRemove);
+                    Console.WriteLine($"Counter attack successful! One sensor removed from {agent.Name}.");
+                }
+                else
+                {
+                    Console.WriteLine($"Counter attack failed! {agent.Name} has no sensors to remove.");
+                }
+            }
+        }
+
     }
 }
+
+
+
+        
+    
+
+
+
+    
+
