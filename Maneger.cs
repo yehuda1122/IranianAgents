@@ -30,6 +30,7 @@ namespace IranianAgents
         {
             Console.WriteLine($"Iranian Agent Type {agent.GetType().Name}, name: {agent.Name}");
             Console.WriteLine("Please enter the sensor type for weakness (Thermal, Traffic, Cellular, PlusSensor):");
+
             int sensorCount = 0;
 
             while (sensorCount < agent.SecretWeaknesses.Length)
@@ -43,27 +44,28 @@ namespace IranianAgents
                     continue;
                 }
 
-                totalAttempts++; // ספירת כמות פעמים שהמשתמש הכניס סנסורים
+                // נרשום שימוש אם זה פלוס
+                if (inputSensor is PlusSensor plus)
+                {
+                    plus.RegisterUse();
+                }
 
+                // ספירת ניסיונות עבור SquadLeader
+                bool triggeredCounter = false;
                 if (agent is SquadLeader)
                 {
-                    CheckCounterAttack(agent); // מחיקת סנסור של משתמש רק בסוכן מסוים
+                    totalAttempts++;
+                    triggeredCounter = CheckCounterAttack(agent, ref sensorCount);  // נעדכן גם את sensorCount במקרה של מתקפה
                 }
 
                 bool found = false;
+
                 for (int i = 0; i < agent.SecretWeaknesses.Length; i++)
                 {
-                    if (agent.SecretWeaknesses[i] != null && agent.SecretWeaknesses[i].GetType() == inputSensor.GetType())
+                    if (agent.SecretWeaknesses[i] != null &&
+                        agent.SecretWeaknesses[i].GetType() == inputSensor.GetType())
                     {
-                        if (inputSensor is PlusSensor plusMatch)
-                        {
-                            plusMatch.RegisterUse();
-                            plusMatch.Activate();
-                        }
-                        else
-                        {
-                            inputSensor.Activate();
-                        }
+                        inputSensor.Activate();
                         agent.Sensor.Add(inputSensor);
                         agent.SecretWeaknesses[i] = null;
                         sensorCount++;
@@ -72,16 +74,19 @@ namespace IranianAgents
                     }
                 }
 
-                if (!found && inputSensor is PlusSensor plusMissed)
+                // הדפסה רק אם לא הופעלה מתקפה (היא כבר מדפיסה)
+                if (!triggeredCounter)
                 {
-                    plusMissed.RegisterUse();
+                    Console.WriteLine($"you found [{sensorCount}/{agent.SecretWeaknesses.Length}]");
                 }
-                Console.WriteLine($"you found [{agent.Sensor.Count}/{agent.SecretWeaknesses.Length}]");
             }
+
             Console.WriteLine("The Agent exposed");
             Console.ReadLine();
         }
-        public static void CheckCounterAttack(IAgent agent)
+
+        
+        public static bool CheckCounterAttack(IAgent agent, ref int sensorCount)
         {
             if (totalAttempts % 3 == 0)
             {
@@ -90,17 +95,27 @@ namespace IranianAgents
                     Random rnd = new Random();
                     int indexToRemove = rnd.Next(agent.Sensor.Count);
                     agent.Sensor.RemoveAt(indexToRemove);
+                    sensorCount = Math.Max(0, sensorCount - 1);
+
                     Console.WriteLine($"Counter attack successful! One sensor removed from {agent.Name}.");
                 }
                 else
                 {
                     Console.WriteLine($"Counter attack failed! {agent.Name} has no sensors to remove.");
                 }
+
+                Console.WriteLine($"you found [{sensorCount}/{agent.SecretWeaknesses.Length}]");
+                return true; // הופעלה מתקפת נגד
             }
+            return false; // לא הופעלה מתקפת נגד
         }
 
     }
+
+
+
 }
+
 
 
 
